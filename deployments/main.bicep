@@ -1,48 +1,22 @@
-targetScope = 'resourceGroup'
- 
-param name string
-param location string = resourceGroup().location
- 
-@allowed([
-  'Allow'
-  'Deny'
-])
-param defaultAction string = 'Deny'
-param environment string
-param workspaceId string = ''
- 
-resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = {
-  name: name
-  location: location
+param accounts_cv_docucheck_name string = 'cv-docucheck'
+
+resource accounts_cv_docucheck_name_resource 'Microsoft.CognitiveServices/accounts@2024-06-01-preview' = {
+  name: accounts_cv_docucheck_name
+  location: 'eastus'
+  sku: {
+    name: 'S1'
+  }
+  kind: 'ComputerVision'
+  identity: {
+    type: 'None'
+  }
   properties: {
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: tenant().tenantId
-    enableSoftDelete: true
-    enablePurgeProtection: true
-    enableRbacAuthorization: true
+    customSubDomainName: accounts_cv_docucheck_name
     networkAcls: {
-      defaultAction: defaultAction
+      defaultAction: 'Allow'
+      virtualNetworkRules: []
+      ipRules: []
     }
-  }
-  tags: {
-    env: environment
-  }
-}
- 
-@sys.description('Configure auditing for Key Vault.')
-resource logs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(workspaceId)) {
-  name: 'service'
-  scope: vault
-  properties: {
-    workspaceId: workspaceId
-    logs: [
-      {
-        category: 'AuditEvent'
-        enabled: true
-      }
-    ]
+    publicNetworkAccess: 'Enabled'
   }
 }
